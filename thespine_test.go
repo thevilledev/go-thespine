@@ -24,9 +24,9 @@ func Test_EncodeDecode(t *testing.T) {
 			want: "thespine",
 		},
 		{
-			str:  "kubernetes",
+			str:  "seteernkub",
 			name: "the tech",
-			want: "tesrneubek",
+			want: "kubernetes",
 		},
 	}
 	for _, test := range tests {
