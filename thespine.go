@@ -1,12 +1,11 @@
 package thespine
 
-import "strings"
-
 const THE_SIZE = 3
 
 func Decode(s string) string {
-	l := len(s)
-	g := make([]string, 0)
+	sr := []rune(s)
+	l := len(sr)
+	g := make([][]rune, 0)
 	gc := l / THE_SIZE
 	if l%THE_SIZE != 0 {
 		gc++
@@ -17,15 +16,16 @@ func Decode(s string) string {
 		if si < 0 {
 			si = 0
 		}
-		gs := s[si:ei]
+		gs := sr[si:ei]
 		g = append(g, gs)
 	}
-	return strings.Join(g, "")
+	return concat(g)
 }
 
 func Encode(s string) string {
-	l := len(s)
-	g := make([]string, 0)
+	sr := []rune(s)
+	l := len(sr)
+	g := make([][]rune, 0)
 	gc := l / THE_SIZE
 	if l%THE_SIZE != 0 {
 		gc++
@@ -36,11 +36,19 @@ func Encode(s string) string {
 		if ei > l {
 			ei = l
 		}
-		gs := s[si:ei]
+		gs := sr[si:ei]
 		g = append(g, gs)
 	}
 	for i, j := 0, len(g)-1; i < j; i, j = i+1, j-1 {
 		g[i], g[j] = g[j], g[i]
 	}
-	return strings.Join(g, "")
+	return concat(g)
+}
+
+func concat(r [][]rune) string {
+	var s string
+	for _, r := range r {
+		s += string(r)
+	}
+	return s
 }

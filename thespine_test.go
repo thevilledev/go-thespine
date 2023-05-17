@@ -1,6 +1,8 @@
 package thespine
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_EncodeDecode(t *testing.T) {
 	tests := []struct {
@@ -27,6 +29,16 @@ func Test_EncodeDecode(t *testing.T) {
 			str:  "seteernkub",
 			name: "the tech",
 			want: "kubernetes",
+		},
+		{
+			str:  "ᚬᚩᚡᚣ",
+			name: "the runes",
+			want: "ᚩᚡᚣᚬ",
+		},
+		{
+			str:  "\xf0\x9f\x9a\x80ketroc",
+			name: "the cringe",
+			want: "rocket\xf0\x9f\x9a\x80",
 		},
 	}
 	for _, test := range tests {
