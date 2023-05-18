@@ -1,5 +1,7 @@
 # go-thespine
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/thevilledev/go-thespine.svg)](https://pkg.go.dev/github.com/thevilledev/go-thespine)
+
 The greatest death metal album of all time is "Nespithe" (1993) by Demilich from Kuopio, Finland.
 
 This Go library presents encoding and decoding facilities for the anagrams presented by this album.
