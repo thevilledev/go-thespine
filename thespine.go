@@ -1,8 +1,18 @@
 package thespine
 
+import (
+	"errors"
+	"unicode/utf8"
+)
+
 const THE_SIZE = 3
 
-func Decode(s string) string {
+var ErrInvalidString = errors.New("invalid string")
+
+func Decode(s string) (string, error) {
+	if !utf8.ValidString(s) {
+		return "", ErrInvalidString
+	}
 	sr := []rune(s)
 	l := len(sr)
 	g := make([][]rune, 0)
@@ -19,10 +29,13 @@ func Decode(s string) string {
 		gs := sr[si:ei]
 		g = append(g, gs)
 	}
-	return concat(g)
+	return concat(g), nil
 }
 
-func Encode(s string) string {
+func Encode(s string) (string, error) {
+	if !utf8.ValidString(s) {
+		return "", ErrInvalidString
+	}
 	sr := []rune(s)
 	l := len(sr)
 	g := make([][]rune, 0)
@@ -42,7 +55,7 @@ func Encode(s string) string {
 	for i, j := 0, len(g)-1; i < j; i, j = i+1, j-1 {
 		g[i], g[j] = g[j], g[i]
 	}
-	return concat(g)
+	return concat(g), nil
 }
 
 func concat(r [][]rune) string {
