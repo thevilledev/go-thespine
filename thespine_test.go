@@ -61,7 +61,7 @@ func Test_Decode(t *testing.T) {
 				t.Fatalf("decode err wanted but got none")
 			}
 			if got != test.want {
-				t.Fatalf("decode got: %s\nwant: %s\n", got, test.want)
+				t.Fatalf("decode got: '%s'\nwant: '%s'\n", got, test.want)
 			}
 		})
 	}
@@ -106,7 +106,7 @@ func Test_Encode(t *testing.T) {
 				t.Fatalf("encode err wanted but got none")
 			}
 			if enc != test.want {
-				t.Fatalf("encode got: %s\nwant: %s\n", enc, test.want)
+				t.Fatalf("encode got: '%s'\nwant: '%s'\n", enc, test.want)
 			}
 		})
 	}
@@ -131,4 +131,70 @@ func FuzzEncode(f *testing.F) {
 			}
 		}
 	})
+}
+
+func Test_EncodeText(t *testing.T) {
+	tests := []struct {
+		str     string
+		name    string
+		want    string
+		wantErr bool
+	}{
+		{
+			str:     "meh noob",
+			name:    "the noob",
+			want:    "meh bnoo",
+			wantErr: false,
+		},
+		{
+			str:     "The Putrefying Road In The 19th Extremity (...Somewhere Inside The Bowels Of The Endlessness...)",
+			name:    "the noob2",
+			want:    "The gyinrefPut dRoa In The h19t ityremExt ehermew.So(.. ideIns The elsBow Of The ..)ss.snelesEnd",
+			wantErr: false,
+		},
+		{
+			str:     "\xf2",
+			name:    "the invalid string",
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o, _ := EncodeText(test.str)
+			if o != test.want {
+				t.Fatalf("encode got: '%s'\nwant: '%s'\n", o, test.want)
+			}
+		})
+	}
+}
+
+func Test_DecodeText(t *testing.T) {
+	tests := []struct {
+		str     string
+		name    string
+		want    string
+		wantErr bool
+	}{
+		{
+			str:     "The gyinrefPut dRoa In The h19t ityremExt ehermew.So(.. ideIns The elsBow Of The ..)ss.snelesEnd",
+			name:    "the puzzle",
+			want:    "The Putrefying Road In The 19th Extremity (...Somewhere Inside The Bowels Of The Endlessness...)",
+			wantErr: false,
+		},
+		{
+			str:     "\xf2",
+			name:    "the invalid string",
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			o, _ := DecodeText(test.str)
+			if o != test.want {
+				t.Fatalf("encode got: '%s'\nwant: '%s'\n", o, test.want)
+			}
+		})
+	}
 }
