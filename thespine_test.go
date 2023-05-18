@@ -1,8 +1,50 @@
 package thespine
 
 import (
+	"fmt"
+	"log"
 	"testing"
 )
+
+func ExampleDecode() {
+	str := "nespithe"
+	o, err := Decode(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(o)
+	// Output: thespine
+}
+
+func ExampleDecodeText() {
+	str := "nespithe erecshyrinol"
+	o, err := DecodeText(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(o)
+	// Output: thespine nolyricshere
+}
+
+func ExampleEncode() {
+	str := "nolyricshere"
+	o, err := EncodeText(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(o)
+	// Output: erecshyrinol
+}
+
+func ExampleEncodeText() {
+	str := "nolyricshere thespine"
+	o, err := EncodeText(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(o)
+	// Output: erecshyrinol nespithe
+}
 
 func Test_Decode(t *testing.T) {
 	tests := []struct {
