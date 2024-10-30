@@ -24,19 +24,15 @@ func Decode(s string) (string, error) {
 		return s, nil
 	}
 
-	g := make([][]rune, 0)
-	gc := l / theSize
-	if l%theSize != 0 {
-		gc++
-	}
+	gc := (l + theSize - 1) / theSize
+	g := make([][]rune, gc)
 	for i := range gc {
 		si := l - (i+1)*theSize
 		ei := l - i*theSize
 		if si < 0 {
 			si = 0
 		}
-		gs := sr[si:ei]
-		g = append(g, gs)
+		g[i] = sr[si:ei]
 	}
 
 	return runestring(g), nil
