@@ -3,7 +3,9 @@ package thespine
 import (
 	"fmt"
 	"log"
+	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func ExampleDecode() {
@@ -248,6 +250,158 @@ func Test_DecodeText(t *testing.T) {
 			o, _ := DecodeText(test.str)
 			if o != test.want {
 				t.Fatalf("encode got: '%s'\nwant: '%s'\n", o, test.want)
+			}
+		})
+	}
+}
+
+func FuzzEncodeDecodeComprehensive(f *testing.F) {
+	// Add seed corpus
+	seeds := []string{
+		"",                        // Empty string
+		"a",                       // Single char
+		"ab",                      // Two chars
+		"abc",                     // Three chars (group size)
+		"abcd",                    // More than group size
+		"Hello, 世界!",              // Mixed ASCII and Unicode
+		"🌍🌎🌏",                     // Only emojis
+		"     ",                   // Multiple spaces
+		"a\nb\tc",                 // Special whitespace
+		"a  b    c",               // Multiple consecutive spaces
+		strings.Repeat("a", 1000), // Long string
+		"ᚠᛇᚻ᛫ᛒᛦᚦ",                 // Runes
+		"\u200B\u200C\u200D",      // Zero-width characters
+		"a\u0300\u0301b\u0302c",   // Combining diacritical marks
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		// Skip invalid UTF-8
+		if !utf8.ValidString(input) {
+			return
+		}
+
+		// Test 1: Encode->Decode roundtrip
+		encoded, err := Encode(input)
+		if err != nil {
+			// Some inputs might legitimately fail to encode
+			return
+		}
+		decoded, err := Decode(encoded)
+		if err != nil {
+			t.Errorf("Failed to decode encoded string: %v", err)
+
+			return
+		}
+		if decoded != input {
+			t.Errorf("Roundtrip failed: input=%q, got=%q", input, decoded)
+		}
+
+		// Test 2: Check encoded string properties
+		inputRunes := []rune(input)
+		encodedRunes := []rune(encoded)
+		if len(inputRunes) != len(encodedRunes) {
+			t.Errorf("Length mismatch: input=%d, encoded=%d", len(inputRunes), len(encodedRunes))
+		}
+
+		// Test 3: Multiple encode/decode cycles
+		current := input
+		for i := range 3 {
+			encoded, err := Encode(current)
+			if err != nil {
+				t.Errorf("Failed at cycle %d: %v", i, err)
+
+				return
+			}
+			decoded, err := Decode(encoded)
+			if err != nil {
+				t.Errorf("Failed at cycle %d: %v", i, err)
+
+				return
+			}
+			if decoded != current {
+				t.Errorf("Cycle %d failed: expected=%q, got=%q", i, current, decoded)
+			}
+			current = decoded
+		}
+	})
+}
+
+func FuzzEncodeDecodeText(f *testing.F) {
+	seeds := []string{
+		"",
+		"hello world",
+		"  spaced  words  ",
+		"one two three four",
+		"Hello,\nWorld!",
+		"Tab\there",
+		"Mixed 世界 Unicode",
+		"🌍 Earth 🌎 Globe 🌏",
+		strings.Repeat("word ", 100),
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		// Skip invalid UTF-8
+		if !utf8.ValidString(input) {
+			return
+		}
+
+		// Test 1: EncodeText->DecodeText roundtrip
+		encoded, err := EncodeText(input)
+		if err != nil {
+			return
+		}
+		decoded, err := DecodeText(encoded)
+		if err != nil {
+			t.Errorf("Failed to decode encoded text: %v", err)
+
+			return
+		}
+
+		// Normalize spaces for comparison since that's part of the spec
+		normalizeSpaces := func(s string) string {
+			return strings.Join(strings.Fields(s), " ")
+		}
+
+		normalizedInput := normalizeSpaces(input)
+		normalizedDecoded := normalizeSpaces(decoded)
+
+		if normalizedDecoded != normalizedInput {
+			t.Errorf("Roundtrip failed:\ninput=%q\ngot=%q", normalizedInput, normalizedDecoded)
+		}
+
+		// Test 2: Check word boundaries are preserved
+		inputWords := strings.Fields(input)
+		encodedWords := strings.Fields(encoded)
+		if len(inputWords) != len(encodedWords) {
+			t.Errorf("Word count mismatch: input=%d, encoded=%d", len(inputWords), len(encodedWords))
+		}
+	})
+}
+
+// Add benchmark tests.
+func BenchmarkEncode(b *testing.B) {
+	inputs := []struct {
+		name string
+		str  string
+	}{
+		{"small", "hello"},
+		{"medium", strings.Repeat("hello", 100)},
+		{"large", strings.Repeat("hello", 1000)},
+		{"unicode", "Hello, 世界! 🌍"},
+	}
+
+	for _, input := range inputs {
+		b.Run(input.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, _ = Encode(input.str)
 			}
 		})
 	}
