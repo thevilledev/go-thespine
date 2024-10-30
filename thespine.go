@@ -124,7 +124,14 @@ func DecodeText(s string) (string, error) {
 }
 
 func runestring(r [][]rune) string {
-	var builder strings.Builder
+	// Calculate total capacity needed
+	totalCap := 0
+	for _, runes := range r {
+		totalCap += len(runes)
+	}
+
+	builder := strings.Builder{}
+	builder.Grow(totalCap) // Pre-allocate exact size needed
 	for _, runes := range r {
 		builder.WriteString(string(runes))
 	}
