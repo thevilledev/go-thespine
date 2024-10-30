@@ -47,6 +47,8 @@ func ExampleEncodeText() {
 }
 
 func Test_Decode(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		str     string
 		name    string
@@ -98,6 +100,7 @@ func Test_Decode(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := Decode(test.str)
 			if test.wantErr && err == nil {
 				t.Fatalf("decode err wanted but got none")
@@ -110,6 +113,8 @@ func Test_Decode(t *testing.T) {
 }
 
 func Test_Encode(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		str     string
 		name    string
@@ -143,6 +148,7 @@ func Test_Encode(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			enc, err := Encode(test.str)
 			if test.wantErr && err == nil {
 				t.Fatalf("encode err wanted but got none")
@@ -176,6 +182,8 @@ func FuzzEncode(f *testing.F) {
 }
 
 func Test_EncodeText(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		str     string
 		name    string
@@ -203,6 +211,7 @@ func Test_EncodeText(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			o, _ := EncodeText(test.str)
 			if o != test.want {
 				t.Fatalf("encode got: '%s'\nwant: '%s'\n", o, test.want)
@@ -212,6 +221,8 @@ func Test_EncodeText(t *testing.T) {
 }
 
 func Test_DecodeText(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		str     string
 		name    string
@@ -233,6 +244,7 @@ func Test_DecodeText(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			o, _ := DecodeText(test.str)
 			if o != test.want {
 				t.Fatalf("encode got: '%s'\nwant: '%s'\n", o, test.want)

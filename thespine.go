@@ -6,10 +6,10 @@ import (
 	"unicode/utf8"
 )
 
-// THE_SIZE represents the size of grouping used by the anagram encode/decode
-const THE_SIZE = 3
+// theSize represents the size of grouping used by the anagram encode/decode.
+const theSize = 3
 
-// ErrInvalidString represents an error for invalid UTF-8 string
+// ErrInvalidString represents an error for invalid UTF-8 string.
 var ErrInvalidString = errors.New("invalid string")
 
 // Decode takes a UTF-8 string as an input and decodes the anagram.
@@ -20,24 +20,25 @@ func Decode(s string) (string, error) {
 	}
 	sr := []rune(s)
 	l := len(sr)
-	if l <= THE_SIZE {
+	if l <= theSize {
 		return s, nil
 	}
 
 	g := make([][]rune, 0)
-	gc := l / THE_SIZE
-	if l%THE_SIZE != 0 {
+	gc := l / theSize
+	if l%theSize != 0 {
 		gc++
 	}
-	for i := 0; i < gc; i++ {
-		si := l - (i+1)*THE_SIZE
-		ei := l - i*THE_SIZE
+	for i := range gc {
+		si := l - (i+1)*theSize
+		ei := l - i*theSize
 		if si < 0 {
 			si = 0
 		}
 		gs := sr[si:ei]
 		g = append(g, gs)
 	}
+
 	return runestring(g), nil
 }
 
@@ -49,18 +50,18 @@ func Encode(s string) (string, error) {
 	}
 	sr := []rune(s)
 	l := len(sr)
-	if l <= THE_SIZE {
+	if l <= theSize {
 		return s, nil
 	}
 
 	g := make([][]rune, 0)
-	gc := l / THE_SIZE
-	if l%THE_SIZE != 0 {
+	gc := l / theSize
+	if l%theSize != 0 {
 		gc++
 	}
-	for i := 0; i < gc; i++ {
-		si := i * THE_SIZE
-		ei := (i + 1) * THE_SIZE
+	for i := range gc {
+		si := i * theSize
+		ei := (i + 1) * theSize
 		if ei > l {
 			ei = l
 		}
@@ -70,6 +71,7 @@ func Encode(s string) (string, error) {
 	for i, j := 0, len(g)-1; i < j; i, j = i+1, j-1 {
 		g[i], g[j] = g[j], g[i]
 	}
+
 	return runestring(g), nil
 }
 
@@ -88,6 +90,7 @@ func EncodeText(s string) (string, error) {
 			o += " "
 		}
 	}
+
 	return o, nil
 }
 
@@ -106,6 +109,7 @@ func DecodeText(s string) (string, error) {
 			o += " "
 		}
 	}
+
 	return o, nil
 }
 
@@ -114,5 +118,6 @@ func runestring(r [][]rune) string {
 	for _, r := range r {
 		s += string(r)
 	}
+
 	return s
 }
