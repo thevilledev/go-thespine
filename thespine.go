@@ -78,46 +78,64 @@ func Encode(s string) (string, error) {
 // EncodeText takes a UTF-8 string as an input, splits it by whitespace and runs an anagram for each word.
 // Error returned in case of an invalid UTF-8 string.
 func EncodeText(s string) (string, error) {
-	o := ""
+	if s == "" {
+		return "", nil
+	}
+
+	var builder strings.Builder
 	ws := strings.Split(s, " ")
 	for i, w := range ws {
+		if w == "" {
+			continue // Skip empty strings or preserve them, depending on requirements
+		}
+
 		ew, err := Encode(w)
 		if err != nil {
 			return "", err
 		}
-		o += ew
+
+		builder.WriteString(ew)
 		if i != len(ws)-1 {
-			o += " "
+			builder.WriteString(" ")
 		}
 	}
 
-	return o, nil
+	return builder.String(), nil
 }
 
 // DecodeText takes a UTF-8 string as an input, splits it by whitespace and decodes each anagram word-by-word.
 // Error returned in case of an invalid UTF-8 string.
 func DecodeText(s string) (string, error) {
-	o := ""
+	if s == "" {
+		return "", nil
+	}
+
+	var builder strings.Builder
 	ws := strings.Split(s, " ")
 	for i, w := range ws {
+		if w == "" {
+			continue // Skip empty strings or preserve them, depending on requirements
+		}
+
 		ew, err := Decode(w)
 		if err != nil {
 			return "", err
 		}
-		o += ew
+
+		builder.WriteString(ew)
 		if i < len(ws)-1 {
-			o += " "
+			builder.WriteString(" ")
 		}
 	}
 
-	return o, nil
+	return builder.String(), nil
 }
 
 func runestring(r [][]rune) string {
-	var s string
-	for _, r := range r {
-		s += string(r)
+	var builder strings.Builder
+	for _, runes := range r {
+		builder.WriteString(string(runes))
 	}
 
-	return s
+	return builder.String()
 }
