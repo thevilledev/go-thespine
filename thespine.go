@@ -54,19 +54,15 @@ func Encode(s string) (string, error) {
 		return s, nil
 	}
 
-	g := make([][]rune, 0)
-	gc := l / theSize
-	if l%theSize != 0 {
-		gc++
-	}
+	gc := (l + theSize - 1) / theSize
+	g := make([][]rune, gc)
 	for i := range gc {
 		si := i * theSize
 		ei := (i + 1) * theSize
 		if ei > l {
 			ei = l
 		}
-		gs := sr[si:ei]
-		g = append(g, gs)
+		g[i] = sr[si:ei]
 	}
 	for i, j := 0, len(g)-1; i < j; i, j = i+1, j-1 {
 		g[i], g[j] = g[j], g[i]
