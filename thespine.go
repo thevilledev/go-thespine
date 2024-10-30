@@ -24,19 +24,15 @@ func Decode(s string) (string, error) {
 		return s, nil
 	}
 
-	g := make([][]rune, 0)
-	gc := l / theSize
-	if l%theSize != 0 {
-		gc++
-	}
+	gc := (l + theSize - 1) / theSize
+	g := make([][]rune, gc)
 	for i := range gc {
 		si := l - (i+1)*theSize
 		ei := l - i*theSize
 		if si < 0 {
 			si = 0
 		}
-		gs := sr[si:ei]
-		g = append(g, gs)
+		g[i] = sr[si:ei]
 	}
 
 	return runestring(g), nil
@@ -54,19 +50,15 @@ func Encode(s string) (string, error) {
 		return s, nil
 	}
 
-	g := make([][]rune, 0)
-	gc := l / theSize
-	if l%theSize != 0 {
-		gc++
-	}
+	gc := (l + theSize - 1) / theSize
+	g := make([][]rune, gc)
 	for i := range gc {
 		si := i * theSize
 		ei := (i + 1) * theSize
 		if ei > l {
 			ei = l
 		}
-		gs := sr[si:ei]
-		g = append(g, gs)
+		g[i] = sr[si:ei]
 	}
 	for i, j := 0, len(g)-1; i < j; i, j = i+1, j-1 {
 		g[i], g[j] = g[j], g[i]
@@ -132,7 +124,14 @@ func DecodeText(s string) (string, error) {
 }
 
 func runestring(r [][]rune) string {
-	var builder strings.Builder
+	// Calculate total capacity needed
+	totalCap := 0
+	for _, runes := range r {
+		totalCap += len(runes)
+	}
+
+	builder := strings.Builder{}
+	builder.Grow(totalCap) // Pre-allocate exact size needed
 	for _, runes := range r {
 		builder.WriteString(string(runes))
 	}
