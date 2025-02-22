@@ -1,11 +1,19 @@
 package thespine
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"testing"
 	"unicode/utf8"
+)
+
+var (
+	ErrDecodeFailed   = errors.New("failed to decode encoded string")
+	ErrRoundtripFail  = errors.New("roundtrip failed")
+	ErrLengthMismatch = errors.New("length mismatch")
+	ErrCycleFailed    = errors.New("cycle failed")
 )
 
 func ExampleDecode() {
@@ -255,6 +263,55 @@ func Test_DecodeText(t *testing.T) {
 	}
 }
 
+func testEncodeDecode(t *testing.T, input string) error {
+	t.Helper()
+	encoded, err := Encode(input)
+	if err != nil {
+		return err
+	}
+	decoded, err := Decode(encoded)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrDecodeFailed, err)
+	}
+	if decoded != input {
+		return fmt.Errorf("%w: input=%q, got=%q", ErrRoundtripFail, input, decoded)
+	}
+
+	return nil
+}
+
+func testRuneProperties(t *testing.T, input, encoded string) error {
+	t.Helper()
+	inputRunes := []rune(input)
+	encodedRunes := []rune(encoded)
+	if len(inputRunes) != len(encodedRunes) {
+		return fmt.Errorf("%w: input=%d, encoded=%d", ErrLengthMismatch, len(inputRunes), len(encodedRunes))
+	}
+
+	return nil
+}
+
+func testMultipleCycles(t *testing.T, input string) error {
+	t.Helper()
+	current := input
+	for i := range 3 {
+		encoded, err := Encode(current)
+		if err != nil {
+			return fmt.Errorf("cycle %d: %w", i, err)
+		}
+		decoded, err := Decode(encoded)
+		if err != nil {
+			return fmt.Errorf("cycle %d: %w", i, err)
+		}
+		if decoded != current {
+			return fmt.Errorf("%w: cycle=%d expected=%q, got=%q", ErrCycleFailed, i, current, decoded)
+		}
+		current = decoded
+	}
+
+	return nil
+}
+
 func FuzzEncodeDecodeComprehensive(f *testing.F) {
 	// Add seed corpus
 	seeds := []string{
@@ -284,48 +341,23 @@ func FuzzEncodeDecodeComprehensive(f *testing.F) {
 			return
 		}
 
-		// Test 1: Encode->Decode roundtrip
+		// Test 1: Basic encode/decode roundtrip
 		encoded, err := Encode(input)
 		if err != nil {
-			// Some inputs might legitimately fail to encode
-			return
-		}
-		decoded, err := Decode(encoded)
-		if err != nil {
-			t.Errorf("Failed to decode encoded string: %v", err)
-
-			return
-		}
-		if decoded != input {
-			t.Errorf("Roundtrip failed: input=%q, got=%q", input, decoded)
+			return // Some inputs might legitimately fail to encode
 		}
 
-		// Test 2: Check encoded string properties
-		inputRunes := []rune(input)
-		encodedRunes := []rune(encoded)
-		if len(inputRunes) != len(encodedRunes) {
-			t.Errorf("Length mismatch: input=%d, encoded=%d", len(inputRunes), len(encodedRunes))
-		}
-
-		// Test 3: Multiple encode/decode cycles
-		current := input
-		for i := range 3 {
-			encoded, err := Encode(current)
-			if err != nil {
-				t.Errorf("Failed at cycle %d: %v", i, err)
-
-				return
+		for _, test := range []struct {
+			name string
+			fn   func() error
+		}{
+			{"encode-decode", func() error { return testEncodeDecode(t, input) }},
+			{"rune-properties", func() error { return testRuneProperties(t, input, encoded) }},
+			{"multiple-cycles", func() error { return testMultipleCycles(t, input) }},
+		} {
+			if err := test.fn(); err != nil {
+				t.Errorf("%s: %v", test.name, err)
 			}
-			decoded, err := Decode(encoded)
-			if err != nil {
-				t.Errorf("Failed at cycle %d: %v", i, err)
-
-				return
-			}
-			if decoded != current {
-				t.Errorf("Cycle %d failed: expected=%q, got=%q", i, current, decoded)
-			}
-			current = decoded
 		}
 	})
 }
@@ -400,7 +432,7 @@ func BenchmarkEncode(b *testing.B) {
 
 	for _, input := range inputs {
 		b.Run(input.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				_, _ = Encode(input.str)
 			}
 		})
