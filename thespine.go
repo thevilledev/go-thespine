@@ -24,18 +24,26 @@ func Decode(s string) (string, error) {
 		return s, nil
 	}
 
+	// Calculate number of groups
 	gc := (l + theSize - 1) / theSize
-	g := make([][]rune, gc)
+
+	// Pre-allocate builder with exact byte size
+	var builder strings.Builder
+	builder.Grow(len(s))
+
+	// Write groups directly, avoiding intermediate slice allocation
 	for i := range gc {
 		si := l - (i+1)*theSize
 		ei := l - i*theSize
 		if si < 0 {
 			si = 0
 		}
-		g[i] = sr[si:ei]
+		for j := si; j < ei; j++ {
+			builder.WriteRune(sr[j])
+		}
 	}
 
-	return runestring(g), nil
+	return builder.String(), nil
 }
 
 // Encode takes a UTF-8 string as an input and generates an anagram out of it.
@@ -50,21 +58,26 @@ func Encode(s string) (string, error) {
 		return s, nil
 	}
 
+	// Calculate number of groups
 	gc := (l + theSize - 1) / theSize
-	g := make([][]rune, gc)
-	for i := range gc {
+
+	// Pre-allocate builder with exact byte size
+	var builder strings.Builder
+	builder.Grow(len(s))
+
+	// Write groups in reverse order directly, avoiding intermediate slice allocation
+	for i := gc - 1; i >= 0; i-- {
 		si := i * theSize
 		ei := (i + 1) * theSize
 		if ei > l {
 			ei = l
 		}
-		g[i] = sr[si:ei]
-	}
-	for i, j := 0, len(g)-1; i < j; i, j = i+1, j-1 {
-		g[i], g[j] = g[j], g[i]
+		for j := si; j < ei; j++ {
+			builder.WriteRune(sr[j])
+		}
 	}
 
-	return runestring(g), nil
+	return builder.String(), nil
 }
 
 // EncodeText takes a UTF-8 string as an input, splits it by whitespace and runs an anagram for each word.
@@ -123,18 +136,3 @@ func DecodeText(s string) (string, error) {
 	return builder.String(), nil
 }
 
-func runestring(r [][]rune) string {
-	// Calculate total capacity needed
-	totalCap := 0
-	for _, runes := range r {
-		totalCap += len(runes)
-	}
-
-	builder := strings.Builder{}
-	builder.Grow(totalCap) // Pre-allocate exact size needed
-	for _, runes := range r {
-		builder.WriteString(string(runes))
-	}
-
-	return builder.String()
-}
