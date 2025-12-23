@@ -171,7 +171,7 @@ func Test_Encode(t *testing.T) {
 }
 
 func FuzzEncode(f *testing.F) {
-	tcs := []string{"rocket\xf0\x9f\x9a\x80", "abba acdc", "Hello, 世界!"}
+	tcs := []string{"rocket\xf0\x9f\x9a\x80", "abba acdc", "Hello, 世界!"} //nolint:gosmopolitan
 	for _, tc := range tcs {
 		f.Add(tc)
 	}
@@ -314,6 +314,7 @@ func testMultipleCycles(t *testing.T, input string) error {
 
 func FuzzEncodeDecodeComprehensive(f *testing.F) {
 	// Add seed corpus
+	//nolint:gosmopolitan
 	seeds := []string{
 		"",                        // Empty string
 		"a",                       // Single char
@@ -370,7 +371,7 @@ func FuzzEncodeDecodeText(f *testing.F) {
 		"one two three four",
 		"Hello,\nWorld!",
 		"Tab\there",
-		"Mixed 世界 Unicode",
+		"Mixed 世界 Unicode", //nolint:gosmopolitan
 		"🌍 Earth 🌎 Globe 🌏",
 		strings.Repeat("word ", 100),
 	}
@@ -427,7 +428,7 @@ func BenchmarkEncode(b *testing.B) {
 		{"small", "hello"},
 		{"medium", strings.Repeat("hello", 100)},
 		{"large", strings.Repeat("hello", 1000)},
-		{"unicode", "Hello, 世界! 🌍"},
+		{"unicode", "Hello, 世界! 🌍"}, //nolint:gosmopolitan
 	}
 
 	for _, input := range inputs {

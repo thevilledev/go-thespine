@@ -68,10 +68,7 @@ func Encode(s string) (string, error) {
 	// Write groups in reverse order directly, avoiding intermediate slice allocation
 	for i := gc - 1; i >= 0; i-- {
 		si := i * theSize
-		ei := (i + 1) * theSize
-		if ei > l {
-			ei = l
-		}
+		ei := min((i+1)*theSize, l)
 		for j := si; j < ei; j++ {
 			builder.WriteRune(sr[j])
 		}
@@ -135,4 +132,3 @@ func DecodeText(s string) (string, error) {
 
 	return builder.String(), nil
 }
-
